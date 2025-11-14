@@ -23,21 +23,6 @@ Create a lightweight, serverless API that:
 - Can be called from GitHub READMEs to display dynamic infographics
 - Runs entirely on Vercel's free serverless platform
 
-## Project Structure
-
-SpotifyStats/ <br>
-├── .github/workflows <br>
-│ └── ci.yml # CI/CD pipeline <br>
-├── api/ <br>
-│ └── index.py # Flask serverless function for Vercel <br>
-├── tests/ <br>
-│ └── test_Collector.py # Pytest test suite <br>
-├── statsCollector.py # Core stats collection logic <br>
-├── getRefreshToken.py # Helper script to obtain Spotify refresh token <br>
-├── requirements.txt # Python dependencies <br>
-├── vercel.json # Vercel configuration <br>
-└── README.md # This file <br>
-
 ## Features
 
 ### Current Implementation
@@ -126,7 +111,7 @@ python getRefreshToken.py
 2. Click **Add New Project**
 3. Import your forked GitHub repository
 4. Vercel will detect the Python project automatically
-5. Create a Github Personal Access Token (PAT) --> you can see the steps [here](https://github.com/anuraghazra/github-readme-stats?tab=readme-ov-file#on-vercel)
+5. Create a Github Personal Access Token (PAT) --> you can see the steps [from this repo](https://github.com/anuraghazra/github-readme-stats?tab=readme-ov-file#on-vercel)
 6. Before deploying, add **Environment Variables**:
 
 - `SPOTIPY_CLIENT_ID`: Your Spotify Client ID
