@@ -1,11 +1,13 @@
 # SpotifyStats
 
 <div align="center">
-  <a href="">![Python](https://img.shields.io/badge/python-3.14-blue.svg)</a>
-  <a href="">![Flask](https://img.shields.io/badge/flask-3.1.0-green.svg)</a>
-  <a href="">![Spotipy](https://img.shields.io/badge/spotipy-2.25.0-1DB954.svg)</a>
-  <a href="">![Vercel](https://img.shields.io/badge/vercel-deployed-black.svg)</a>
-  <a href="">![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)</a>
+
+<a href="">![Python](https://img.shields.io/badge/python-3.14-blue.svg)</a>
+<a href="">![Flask](https://img.shields.io/badge/flask-3.1.0-green.svg)</a>
+<a href="">![Spotipy](https://img.shields.io/badge/spotipy-2.25.0-1DB954.svg)</a>
+<a href="">![Vercel](https://img.shields.io/badge/vercel-deployed-black.svg)</a>
+<a href="">![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)</a>
+
 </div>
 
 A serverless API that collects your Spotify listening statistics using the spotipy library and makes them available for display in GitHub READMEs or other applications. Built with Python, Flask, and deployed on Vercel.
