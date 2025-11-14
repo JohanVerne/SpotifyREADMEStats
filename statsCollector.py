@@ -117,9 +117,13 @@ def main():
     spClient = setup_spotify_client()
 
     data = get_user_data(spClient)
-    json_data = json.dumps(data, indent=4)
-    print(json_data)
-    return json_data
+
+    # json_data = json.dumps(data)
+    # print(json_data)
+    # return json_data
+
+    print(data)
+    return data
 
 
 if __name__ == "__main__":
