@@ -9,17 +9,21 @@ def setup_spotify_client() -> spotipy.Spotify:
     SPOTIPY_CLIENT_SECRET = os.environ.get("SPOTIPY_CLIENT_SECRET")
     SPOTIPY_REDIRECT_URI = os.environ.get("SPOTIPY_REDIRECT_URI")
     SCOPE = "user-library-read user-top-read user-read-recently-played user-read-playback-state"
+    CACHE_HANDLER = spotipy.cache_handler.MemoryCacheHandler()
+    SPOTIFY_REFRESH_TOKEN = os.environ.get("SPOTIFY_REFRESH_TOKEN")
 
-    sp = spotipy.Spotify(
-        auth_manager=SpotifyOAuth(
-            client_id=SPOTIPY_CLIENT_ID,
-            client_secret=SPOTIPY_CLIENT_SECRET,
-            redirect_uri=SPOTIPY_REDIRECT_URI,
-            scope=SCOPE,
-        )
+    auth_manager = SpotifyOAuth(
+        client_id=SPOTIPY_CLIENT_ID,
+        client_secret=SPOTIPY_CLIENT_SECRET,
+        redirect_uri=SPOTIPY_REDIRECT_URI,
+        scope=SCOPE,
+        cache_handler=CACHE_HANDLER,
     )
 
-    return sp
+    # Use the refresh token to get a new access token
+    token_info = auth_manager.refresh_access_token(SPOTIFY_REFRESH_TOKEN)
+
+    return spotipy.Spotify(auth=token_info["access_token"])
 
 
 def get_user_top_artists(sp: spotipy.Spotify) -> dict:
