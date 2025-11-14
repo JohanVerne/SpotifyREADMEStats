@@ -24,3 +24,5 @@ Small utility to collect simple Spotify metrics using the Spotipy python client.
   get client id and client secret
   setup secrets in github secrets
   setup redirect uri in github secrets
+
+- on first run --> accept spotify prompt in browser
