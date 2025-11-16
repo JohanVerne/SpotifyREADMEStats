@@ -1,5 +1,6 @@
 import base64
 import requests
+import html
 
 
 # Fetch an image from URL and convert to base64 data URI to bypass Github hotlinking restrictions
@@ -40,6 +41,13 @@ def wrap_text(text, max_width):
     return lines[:2]  # Max 2 lines
 
 
+# Escape XML special characters to prevent parsing errors
+def escape_xml(text):
+    if not text:
+        return text
+    return html.escape(text, quote=False)
+
+
 # Create an SVG infographic for the requested content type and time range
 def create_spotify_infographic(
     stats_data: dict, section_type: str = "artists", time_range: str = "short_term"
@@ -50,12 +58,12 @@ def create_spotify_infographic(
         num_columns = 3
         num_items = 3
         card_width = 150
-        card_height = 230
+        card_height = 185  # Reduced height (no subtitle)
     else:  # artists or songs
         num_columns = 5
         num_items = 5
         card_width = 130
-        card_height = 210
+        card_height = 170  # Reduced height (no subtitle)
 
     # Calculate SVG dimensions - COMPACT
     padding = 12
@@ -88,12 +96,6 @@ def create_spotify_infographic(
                 font-size: 11px; 
                 font-weight: 600;
                 line-height: 1.3;
-            }}
-            .card-subtitle {{ 
-                fill: #B3B3B3; 
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; 
-                font-size: 9px; 
-                font-weight: 400; 
             }}
         </style>
         <!-- Dark gradient background -->
@@ -173,9 +175,9 @@ def create_spotify_infographic(
     # Add title with glow
     svg_content += f"""
     <g filter="url(#glow)">
-        <text x="{padding}" y="32" class="title">{title}</text>
+        <text x="{padding}" y="32" class="title">{escape_xml(title)}</text>
     </g>
-    <text x="{padding}" y="47" class="subtitle">{subtitle}</text>
+    <text x="{padding}" y="47" class="subtitle">{escape_xml(subtitle)}</text>
     """
 
     # Create cards
@@ -194,13 +196,6 @@ def create_spotify_infographic(
         # Wrap text instead of truncating
         max_chars = 18 if section_type == "last_albums" else 16
         name_lines = wrap_text(name, max_chars)
-
-        if section_type == "artists":
-            subtitle_text = item.get("genre", "Unknown")
-            subtitle_lines = wrap_text(subtitle_text, max_chars)
-        else:
-            artist_name = item.get("artist", "Unknown")
-            subtitle_lines = wrap_text(artist_name, max_chars)
 
         # Image dimensions
         img_size = card_width - 16
@@ -237,35 +232,28 @@ def create_spotify_infographic(
                 svg_content += f"""
         <rect x="{x + 8}" y="{y + img_y_offset}" width="{img_size}" height="{img_size}" 
               fill="#333333" rx="8" ry="8"/>
-        <text x="{x + card_width/2}" y="{y + img_y_offset + img_size/2}" 
-              class="card-subtitle" text-anchor="middle" opacity="0.5">♪</text>
+        <text x="{x + card_width/2}" y="{y + img_y_offset + img_size/2 + 5}" 
+              class="card-title" text-anchor="middle" opacity="0.3" font-size="24">♪</text>
         """
         else:
             # Placeholder if no image URL
             svg_content += f"""
         <rect x="{x + 8}" y="{y + img_y_offset}" width="{img_size}" height="{img_size}" 
               fill="#333333" rx="8" ry="8"/>
-        <text x="{x + card_width/2}" y="{y + img_y_offset + img_size/2}" 
-              class="card-subtitle" text-anchor="middle" opacity="0.5">♪</text>
+        <text x="{x + card_width/2}" y="{y + img_y_offset + img_size/2 + 5}" 
+              class="card-title" text-anchor="middle" opacity="0.3" font-size="24">♪</text>
         """
 
-        # Text section with wrapped text
+        # Text section with wrapped text (NO SUBTITLE)
         text_y = y + img_y_offset + img_size + 18
 
-        # Title (up to 2 lines)
+        # Title only (up to 2 lines, centered in remaining space)
         for line_idx, line in enumerate(name_lines):
+            # Escape XML special characters
+            escaped_line = escape_xml(line)
             svg_content += f"""
         <text x="{x + card_width/2}" y="{text_y + (line_idx * 13)}" class="card-title" text-anchor="middle">
-            {line}
-        </text>
-        """
-
-        # Subtitle (1 line)
-        subtitle_y = text_y + (len(name_lines) * 13) + 10
-        if subtitle_lines:
-            svg_content += f"""
-        <text x="{x + card_width/2}" y="{subtitle_y}" class="card-subtitle" text-anchor="middle">
-            {subtitle_lines[0]}
+            {escaped_line}
         </text>
         """
 
