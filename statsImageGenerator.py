@@ -1,73 +1,77 @@
+import base64
+import requests
+
+
+def fetch_image_as_base64(url):
+    """
+    Fetch an image from URL and convert to base64 data URI
+    """
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        img_base64 = base64.b64encode(response.content).decode("utf-8")
+
+        # Determine image type from URL or content-type
+        content_type = response.headers.get("content-type", "image/jpeg")
+        return f"data:{content_type};base64,{img_base64}"
+    except Exception as e:
+        print(f"Error fetching image from {url}: {e}")
+        return None
+
+
 # Create an SVG infographic for the requested content type and time range
 def create_spotify_infographic(
     stats_data: dict, section_type: str = "artists", time_range: str = "short_term"
 ) -> str:
+
     # Determine number of items and columns based on section type
-    if section_type == "albums":
+    if section_type == "last_albums":
         num_columns = 3
         num_items = 3
-        card_width = 280
-        card_height = 350
+        card_width = 140
+        card_height = 200
     else:  # artists or songs
         num_columns = 5
         num_items = 5
-        card_width = 180
-        card_height = 280
+        card_width = 120
+        card_height = 180
 
     # Calculate SVG dimensions
-    padding = 20
-    card_spacing = 15
-    title_height = 80
+    padding = 15
+    card_spacing = 10
+    title_height = 60
     total_width = (
         (card_width * num_columns) + (card_spacing * (num_columns - 1)) + (padding * 2)
     )
     total_height = card_height + title_height + padding
 
-    # SVG header with styles
-    svg_header = f"""<svg width="{total_width}" height="{total_height}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    # SVG header with INLINE styles (no external fonts)
+    svg_header = f"""<svg width="{total_width}" height="{total_height}" xmlns="http://www.w3.org/2000/svg">
     <defs>
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap');
+        <style type="text/css">
             .title {{ 
                 fill: #1DB954; 
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
-                font-size: 32px; 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; 
+                font-size: 24px; 
                 font-weight: 700; 
-                letter-spacing: -0.5px;
             }}
             .subtitle {{
                 fill: #B3B3B3;
-                font-family: 'Inter', sans-serif;
-                font-size: 14px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                font-size: 11px;
                 font-weight: 400;
-            }}
-            .subsubtitle {{
-                fill: #B3B3B3;
-                font-family: 'Inter', sans-serif;
-                font-size: 10px;
-                font-weight: 400;
-                
             }}
             .card-title {{ 
                 fill: #FFFFFF; 
-                font-family: 'Inter', sans-serif; 
-                font-size: 14px; 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; 
+                font-size: 11px; 
                 font-weight: 600; 
             }}
             .card-subtitle {{ 
                 fill: #B3B3B3; 
-                font-family: 'Inter', sans-serif; 
-                font-size: 12px; 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; 
+                font-size: 9px; 
                 font-weight: 400; 
-            }}
-            .rank {{
-                fill: #1DB954;
-                font-family: 'Inter', sans-serif;
-                font-size: 18px;
-                font-weight: 700;
-            }}
-            .card {{
-                transition: transform 0.2s;
             }}
         </style>
         <!-- Gradient for background -->
@@ -77,10 +81,10 @@ def create_spotify_infographic(
         </linearGradient>
         <!-- Card shadow filter -->
         <filter id="cardShadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-            <feOffset dx="0" dy="4" result="offsetblur"/>
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+            <feOffset dx="0" dy="2" result="offsetblur"/>
             <feComponentTransfer>
-                <feFuncA type="linear" slope="0.3"/>
+                <feFuncA type="linear" slope="0.2"/>
             </feComponentTransfer>
             <feMerge>
                 <feMergeNode/>
@@ -89,7 +93,7 @@ def create_spotify_infographic(
         </filter>
         <!-- Clip path for rounded images -->
         <clipPath id="roundedImage">
-            <rect width="100%" height="100%" rx="8" ry="8"/>
+            <rect width="100%" height="100%" rx="6" ry="6"/>
         </clipPath>
     </defs>
     
@@ -121,7 +125,7 @@ def create_spotify_infographic(
             data = stats_data.get("top_songs", {}).get("long_term", {})
 
     elif section_type == "last_albums":
-        title = "My Recently Saved Albums"
+        title = "Recently Saved Albums"
         subtitle = "Latest additions"
         data = stats_data.get("last_listened_to_albums", {})
     else:
@@ -129,8 +133,8 @@ def create_spotify_infographic(
 
     # Add title
     svg_content += f"""
-    <text x="{padding}" y="45" class="title">{title}</text>
-    <text x="{padding}" y="65" class="subtitle">{subtitle}</text>
+    <text x="{padding}" y="35" class="title">{title}</text>
+    <text x="{padding}" y="50" class="subtitle">{subtitle}</text>
     """
 
     # Create cards
@@ -147,60 +151,61 @@ def create_spotify_infographic(
         image_url = item.get("image", None)
 
         # Truncate long names
-        max_chars = 20 if section_type == "albums" else 15
-        display_name = name if len(name) <= max_chars else name[: max_chars - 3] + "..."
+        max_chars = 14 if section_type == "last_albums" else 12
+        display_name = name if len(name) <= max_chars else name[: max_chars - 2] + ".."
 
         if section_type == "artists":
             subtitle_text = item.get("genre", "Unknown")
             subtitle_text = (
                 subtitle_text
                 if len(subtitle_text) <= max_chars
-                else subtitle_text[: max_chars - 3] + "..."
+                else subtitle_text[: max_chars - 2] + ".."
             )
         else:
             artist_name = item.get("artist", "Unknown")
             subtitle_text = (
                 artist_name
                 if len(artist_name) <= max_chars
-                else artist_name[: max_chars - 3] + "..."
+                else artist_name[: max_chars - 2] + ".."
             )
 
         # Image dimensions
-        img_size = card_width - 20
-        img_y_offset = 10
+        img_size = card_width - 16
+        img_y_offset = 8
 
         # Card container with shadow
         svg_content += f"""
     <g class="card" filter="url(#cardShadow)">
         <!-- Card background -->
         <rect x="{x}" y="{y}" width="{card_width}" height="{card_height}" 
-              fill="#282828" rx="12" ry="12"/>
-        
-        <!-- Rank badge -->
-        <circle cx="{x + 20}" cy="{y + 20}" r="15" fill="#1DB954"/>
-        <text x="{x + 20}" y="{y + 26}" class="rank" text-anchor="middle" fill="#B3B3B3">{i+1}</text>
+              fill="#282828" rx="8" ry="8"/>
         """
 
-        # Add image if available
+        # Fetch and embed image as base64 if available
         if image_url:
-            svg_content += f"""
-        <!-- Album/Artist Image -->
-        <g clip-path="url(#roundedImage)">
-            <image x="{x + 10}" y="{y + img_y_offset + 35}" width="{img_size}" height="{img_size}" 
-                   href="{image_url}" preserveAspectRatio="xMidYMid slice"/>
-        </g>
+            base64_image = fetch_image_as_base64(image_url)
+            if base64_image:
+                svg_content += f"""
+        <!-- Album/Artist Image (embedded as base64) -->
+        <image x="{x + 8}" y="{y + img_y_offset}" width="{img_size}" height="{img_size}" 
+               href="{base64_image}" preserveAspectRatio="xMidYMid slice"
+               style="clip-path: inset(0% round 6px);"/>
+        """
+            else:
+                # Placeholder if image fetch failed
+                svg_content += f"""
+        <rect x="{x + 8}" y="{y + img_y_offset}" width="{img_size}" height="{img_size}" 
+              fill="#404040" rx="6" ry="6"/>
         """
         else:
-            # Placeholder if no image
+            # Placeholder if no image URL
             svg_content += f"""
-        <rect x="{x + 10}" y="{y + img_y_offset + 35}" width="{img_size}" height="{img_size}" 
-              fill="#404040" rx="8" ry="8"/>
-        <text x="{x + card_width/2}" y="{y + img_y_offset + 35 + img_size/2}" 
-              class="card-subtitle" text-anchor="middle">No Image</text>
+        <rect x="{x + 8}" y="{y + img_y_offset}" width="{img_size}" height="{img_size}" 
+              fill="#404040" rx="6" ry="6"/>
         """
 
         # Text section
-        text_y = y + img_y_offset + img_size + 55
+        text_y = y + img_y_offset + img_size + 18
 
         svg_content += f"""
         <!-- Title -->
@@ -209,17 +214,10 @@ def create_spotify_infographic(
         </text>
         
         <!-- Subtitle -->
-        <text x="{x + card_width/2}" y="{text_y + 20}" class="card-subtitle" text-anchor="middle">
+        <text x="{x + card_width/2}" y="{text_y + 14}" class="card-subtitle" text-anchor="middle">
             {subtitle_text}
         </text>
     </g>
-    """
-
-    # Footer with branding
-    svg_content += f"""
-    <text x="{total_width - padding}" y="{total_height - 10}" class="subsubtitle" text-anchor="end" opacity="0.5">
-        Generated by SpotifyREADMEStats
-    </text>
     """
 
     svg_footer = "</svg>"

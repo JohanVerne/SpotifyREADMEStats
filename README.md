@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="images/Spotify.svg", height=160px >
+  <img src="images/Spotify.svg", width="100px" >
   <h1> SpotifyREADMEStats</h1>
 
 <a href="">![Python](https://img.shields.io/badge/python-3.14-blue.svg)</a>
